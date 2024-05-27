@@ -1,0 +1,337 @@
+swagger: "2.0"
+info:
+  version: 1.0.2
+  title: Sample API
+  description: >
+    A Sample API céljának rövid összefoglalója
+    <hr>
+    changelog:<ul>
+    <li> 1.0.0 - 2021.02.01 - draft
+    <li> 1.0.1 - 2021.02.04 - api key and other changes
+    <li> 1.0.2 - 2021.02.08 - ...
+basePath: /sample/int/v1
+host: 'dev1-sample-api.paas.telekom.hu:443'
+schemes:
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+security:
+  - apiKey: []  
+paths:
+  '/config':
+    get:
+      tags:
+        - SAMPLE
+      summary: >-
+        ** az adott végpont célja...
+      description: >
+        ** az adott végpont rövid leírása. Idevaló minden olyan speciális limitáció ami a swaggerrel le nem írható (pl opcionális paraméterek egymásközti függősége, ...)
+      operationId: getData
+      parameters:
+        - name: x-correlation-id
+          in: header
+          description: >
+            A hívási lánc egyedi azonosítója, amely  a teljes hívási láncon
+            összefogja a hívásokat. A megkapott azonosítót minden további
+            hívásba át kell adni
+          required: true
+          type: string
+        - name: x-context-id
+          in: header
+          description: >
+            Az egy contextusba tartozó ívásokat köti össze. Pl egy felhasználó
+            munkamenetében előlálló hívásokat fogja össze.
+          required: true
+          type: string
+        - name: x-channel-id
+          in: header
+          description: >
+            Az original requestor alkalmazás azonosítója. Pl: OneApp, OneShop,
+            IFE
+          required: true
+          type: string
+      security:
+        - apiKey: []    
+      responses:
+        '200':
+          description: >
+            ** az adott végpont vélaszának leírása. Idevaló minden olyan speciális információ ami a swaggerrel le nem írható de a válasz értelmezéséhez fontos 
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/SampleConfig'
+        default:
+          $ref: '#/responses/technicalError'
+
+  '/resources':
+    post:
+      tags:
+        - Sample
+      summary: "..."
+      operationId: createResource
+      parameters:
+        - name: x-correlation-id
+          in: header
+          description: >
+            A hívási lánc egyedi azonosítója, amley  a teljes hívási láncon
+            összefogja a hívásokat. A megkapott azonosítót minden további
+            hívásba át kell adni
+          required: true
+          type: string
+        - name: x-context-id
+          in: header
+          description: >
+            Az egy contextusba tartozó ívásokat köti össze. Pl egy felhasználó
+            munkamenetében előláló hívásokat fogja össze.
+          required: true
+          type: string
+        - name: x-channel-id
+          in: header
+          description: >
+            Az original requestor alkalmazás azonosítója. Pl: OneApp, OneShop,
+            IFE
+          required: true
+          type: string
+        - name: body
+          in: body
+          description: >
+            ...
+          required: true
+          schema:
+            $ref: "#/definitions/SampleRequest"  
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: '...'
+          schema:
+            $ref: '#/definitions/SampleResponse'
+        '400':
+          description: 'Hibás vagy hiányos request'
+          schema:
+            $ref: '#/definitions/Error'
+        '401':  
+          description: '...'
+          schema:
+            $ref: '#/definitions/Error'
+        '403':  
+          description: '...'
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          $ref: '#/responses/technicalError'
+        
+
+
+responses:
+  technicalError:
+    description: Tehnikai hiba történt
+    schema:
+      $ref: '#/definitions/Error'
+      
+     
+      
+definitions:
+
+  SampleConfig:
+    type: object
+    additionalProperties:
+      type: object      
+    required:
+      - clientId
+      - redirectUrlsAccepted
+    properties:
+      clientId:
+        type: string
+      redirectUrlsAccepted:
+        type: array
+        minItems: 1
+        items: 
+          type: string
+      scopesSupported:
+        type: array
+        description: "jelenleg támogatott scope:<ul><li>openid"
+        minItems: 1
+        items: 
+          type: string
+          default: openid
+        uniqueItems: true
+      responseTypesSupported:
+        type: array
+        description: "jelenleg támogatott response_type:<ul><li>code"
+        minItems: 1
+        items: 
+          type: string
+          default: code
+        uniqueItems: true
+
+      
+  SampleRequest:
+    type: object
+    required:
+      - clientId
+      - opSessionToken
+      - scope
+    properties:
+      clientId:
+        type: string
+      opSessionToken:
+        type: string  
+      scope:
+        type: string
+        example: "openid"
+      nonce:
+        type: string
+        example: "bcff94a5-a06b-4d4a-af4c-ed3c7ce8b49b"
+
+  SampleResponse:
+    type: object
+    required:
+      - clientId
+      - opSessionToken
+      - scope
+    properties:
+      clientId:
+        type: string
+      opSessionToken:
+        type: string
+      scope:
+        type: string
+        example: "openid"
+      nonce:
+        type: string
+        example: "bcff94a5-a06b-4d4a-af4c-ed3c7ce8b49b"
+      authorizationCode:
+        type: string
+        example: "e037fc31-6d05-4ce2-8395-4bf48ffa4bf1"
+      validFor:
+        $ref: "#/definitions/TimePeriodType"
+      status:
+        $ref: "#/definitions/StatusEnum"
+      statusDate:
+        type: string
+        format: date-time
+        description: "Last time the status changed"
+
+  StatusEnum:
+    type: string
+    enum:
+      - created
+      - redeemed
+
+  SessionRequest:
+    type: object
+    properties:
+      accessToken:
+        description: "Az Onboarding API által (login, token) kiállított accessToken"
+        type: string
+      refreshToken:
+        description: "Az Onboarding/Sample által kiálltott opRehreshToken"
+        type: string
+  
+  Session:
+    type: object
+    properties:
+      opSessionToken:
+        description: "Az adott session-t reprezentáló JWT. Lejárati ideje a konfiguráció szerint alakul"
+        type: string
+      opRefreshToken:
+        type: string
+        description: "hosszúlejáratú GUID alapú token. Evvel lehet megújítani a session-t"
+      legacySessionToken:
+        description: "GUID az SSO által kiállított iPlanetDirectoryPro cookie-ból. null érték esetén az SSO nem volt elérhető a kérés pillanatában. "
+        type: string
+      issuedBasedOn:
+        $ref: '#/definitions/SessionRequest'
+      issueDate:
+        description: "a session keletkezésének időbélyege"
+        type: string
+        format: date-time  
+
+  TimePeriodType:
+    type: "object"
+    readOnly: true
+    properties:
+      startDateTime:
+        type: "string"
+        format: "date-time"
+        description: "Start date of the period"
+      endDateTime:
+        type: "string"
+        format: "date-time"
+        description: "End date of the period"
+    title: "TimePeriodType"
+    description: "Representation of a time period"
+      
+  Error:
+    type: object
+    required:
+      - code
+      - id
+      - timestamp
+    properties:
+      id:
+        type: string
+        description: 'Unique error ID, used for logging purposes, UUID format'
+      code:
+        type: string
+        description: >-
+          A string coding the error type. This is given to caller so he can
+          translate them if required.
+      timestamp:
+        type: string
+        format: date-time
+        description: Exact time of error
+      message:
+        type: string
+        description: A short localized string that describes the error.
+      retryable:
+        type: boolean
+        description: A boolean that provides info is request retryable
+      severity:
+        type: string
+        description: >-
+          Describes severity of error. Order from most to least critical is:
+          FATAL, ERROR, WARN, INFO, DEBUG, TRACE
+
+          * `FATAL` Designates very severe error events that will presumably
+          lead the application to abort.  
+
+          * `ERROR` Designates error events that might still allow the
+          application to continue running.  
+
+          * `WARN` Designates potentially harmful situations.  
+
+          * `INFO` Designates informational messages that highlight the progress
+          of the application at coarse-grained level.  
+
+          * `DEBUG` Designates fine-grained informational events that are most
+          useful to debug an application.  
+
+          * `TRACE` Designates finer-grained informational events than the
+          DEBUG. 
+        enum:
+          - FATAL
+          - ERROR
+          - WARN
+          - INFO
+          - DEBUG
+          - TRACE
+      details:
+        type: array
+        description: Exception detailed info
+        items:
+          type: object
+          properties: { }
+    title: Error
+    description: Default error message template
+
+securityDefinitions:
+  apiKey:
+    description: "API key for technical accounts (opaque format) sent in HTTP Authorization\
+      \ header, no schema"
+    type: "apiKey"
+    name: "x-api-key"
+    in: "header"
